@@ -100,39 +100,4 @@ bool HasPlausibleVTable(const void* object)
 	return IsExecutable(firstSlot);
 }
 
-bool ReadString(const void* address, char* out, size_t maxLength)
-{
-	if (!out || maxLength == 0)
-		return false;
-
-	out[0] = '\0';
-
-	// Read in chunks so a long string costs a handful of syscalls, but never read
-	// past a page boundary that might be unmapped: shrink on partial failure.
-	size_t filled = 0;
-	while (filled < maxLength - 1)
-	{
-		size_t chunk = maxLength - 1 - filled;
-		if (chunk > 64)
-			chunk = 64;
-
-		while (chunk > 0 && !Read(static_cast<const char*>(address) + filled, out + filled, chunk))
-			chunk /= 2;
-
-		if (chunk == 0)
-			return false;
-
-		for (size_t i = filled; i < filled + chunk; ++i)
-		{
-			if (out[i] == '\0')
-				return true;
-		}
-
-		filled += chunk;
-	}
-
-	out[maxLength - 1] = '\0';
-	return false;
-}
-
 } // namespace panodbg::safemem

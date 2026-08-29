@@ -378,7 +378,7 @@ bool OwnWindowInputAttach(void* hwnd)
 		return false;
 	}
 
-	Console::Print("panorama input: subclassed the debugger window");
+	Console::Printf("panorama input: subclassed the debugger window");
 	return true;
 }
 

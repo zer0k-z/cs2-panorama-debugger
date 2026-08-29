@@ -366,7 +366,7 @@ bool InstallImageHooks()
 	if (!safemem::Read(g_createImageGlobal, &create, sizeof(create)) ||
 		!safemem::Read(g_destroyImageGlobal, &destroy, sizeof(destroy)) || !create || !destroy)
 	{
-		Console::Warn("vulkan: vkCreateImage/vkDestroyImage globals are empty (game update?)");
+		Console::Warnf("vulkan: vkCreateImage/vkDestroyImage globals are empty (game update?)");
 		return false;
 	}
 	// The module filled these with vkGetDeviceProcAddr, so the same question on
@@ -623,7 +623,7 @@ bool VkOwnWindowInitialize(void* source2RenderDevice)
 	// Now, not when the debugger opens: panorama pools its targets, so one
 	// allocated before the hook is in place would never be seen.
 	if (!InstallImageHooks())
-		Console::Warn("vulkan: render targets cannot be observed -- the window will stay flat");
+		Console::Warnf("vulkan: render targets cannot be observed -- the window will stay flat");
 
 	Console::Printf("vulkan: instance %p physical %p device %p queue %p family %u",
 					static_cast<void*>(g_instance), static_cast<void*>(g_physicalDevice),
@@ -646,7 +646,7 @@ bool VkOwnWindowCreateSwapChain(void* hwnd, int width, int height)
 	surfaceInfo.hwnd = hwnd;
 	if (vk.CreateWin32Surface(g_instance, &surfaceInfo, nullptr, &g_surface) != VK_SUCCESS)
 	{
-		Console::Warn("vulkan: vkCreateWin32SurfaceKHR failed");
+		Console::Warnf("vulkan: vkCreateWin32SurfaceKHR failed");
 		return false;
 	}
 
@@ -672,7 +672,7 @@ bool VkOwnWindowCreateSwapChain(void* hwnd, int width, int height)
 	vk.GetSurfaceFormats(g_physicalDevice, g_surface, &formatCount, nullptr);
 	if (formatCount == 0)
 	{
-		Console::Warn("vulkan: the surface reports no formats");
+		Console::Warnf("vulkan: the surface reports no formats");
 		DestroySwapchainObjects();
 		return false;
 	}
@@ -741,7 +741,7 @@ bool VkOwnWindowCreateSwapChain(void* hwnd, int width, int height)
 	info.clipped = 1;
 	if (vk.CreateSwapchain(g_device, &info, nullptr, &g_swapchain) != VK_SUCCESS)
 	{
-		Console::Warn("vulkan: vkCreateSwapchainKHR failed");
+		Console::Warnf("vulkan: vkCreateSwapchainKHR failed");
 		DestroySwapchainObjects();
 		return false;
 	}

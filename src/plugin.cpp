@@ -50,7 +50,7 @@ private:
 			Sleep(200);
 		}
 
-		panodbg::Console::Warn("gave up waiting for the panorama UI engine");
+		panodbg::Console::Warnf("gave up waiting for the panorama UI engine");
 	}
 
 	std::thread m_thread;
@@ -83,11 +83,11 @@ public:
 		g_engineServer = static_cast<IVEngineServer2*>(
 			ismm->VInterfaceMatch(ismm->GetEngineFactory(), INTERFACEVERSION_VENGINESERVER));
 		if (!g_engineServer)
-			panodbg::Console::Warn("no " INTERFACEVERSION_VENGINESERVER
+			panodbg::Console::Warnf("no " INTERFACEVERSION_VENGINESERVER
 								   " -- the render convars will not be set");
 		panodbg::SetConsoleCommandSink(&RunConsoleCommand);
 
-		panodbg::Console::Print("loading");
+		panodbg::Console::Printf("loading");
 		g_bootstrap.Start();
 		return true;
 	}
@@ -99,7 +99,7 @@ public:
 		// DLL unloads crashes the next time the game calls through it.
 		g_bootstrap.Stop();
 		panodbg::Shutdown();
-		panodbg::Console::Print("unloaded");
+		panodbg::Console::Printf("unloaded");
 		return true;
 	}
 

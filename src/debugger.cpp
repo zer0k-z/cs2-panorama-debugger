@@ -44,11 +44,8 @@ constexpr size_t kEngineWindowData = 392;
 // panorama::CTopLevelWindowSource2, vtable
 // ??_7CTopLevelWindowSource2@panorama@@6B@.
 constexpr size_t kWindowSetScaleFactor = 7;   // SetWindowScaleFactor(float)
-constexpr size_t kWindowGetSurfaceWidth = 12; // *(uint32*)(this + 48)
-constexpr size_t kWindowGetSurfaceHeight = 13;
 constexpr size_t kWindowOnWindowResize = 15; // (uint32 width, uint32 height)
 constexpr size_t kWindowActivate = 18;       // (bool sendInput)
-constexpr size_t kWindowIsVisible = 44;      // surface != 0 && *(this + 361) == 0
 constexpr size_t kWindowSetVisible = 45;     // *(this + 361) = !arg
 constexpr size_t kWindowSetPlatWindow = 56;  // *(this + 408) = arg
 
@@ -61,9 +58,6 @@ constexpr size_t kWindowSetPlatWindow = 56;  // *(this + 408) = arg
 // +116/+120, which the hit test reads; slot 1 writes a different pair.
 constexpr size_t kWindowInput = 64;
 constexpr size_t kInputSetMousePosition = 2;
-
-// CSource2Surface, stored by BInitializeSurface at both +112 and +352.
-constexpr size_t kWindowSurface = 112;
 
 // The flags Dota's engine2 passes to Plat_CreateWindow for its own debugger.
 constexpr uint32_t kDebuggerWindowFlags = 1079;
@@ -362,7 +356,7 @@ void ResolveRenderDevice()
 	}
 
 	if (!g_renderDevice)
-		Console::Warn("render device not found (game update?) -- nothing will render");
+		Console::Warnf("render device not found (game update?) -- nothing will render");
 }
 
 void SetGameInputCapture(bool enabled)
@@ -422,7 +416,7 @@ void EnsureD3DPath()
 	ResolveRenderDevice();
 	if (!g_renderDevice)
 	{
-		Console::Warn("no render device -- the window will stay blank");
+		Console::Warnf("no render device -- the window will stay blank");
 		return;
 	}
 	// The tools launcher forces Vulkan (-gpuraytracing wins over -dx11), so
@@ -431,14 +425,14 @@ void EnsureD3DPath()
 	{
 		if (!VkOwnWindowInitialize(g_renderDevice))
 		{
-			Console::Warn("vulkan backend unavailable -- the window will stay blank");
+			Console::Warnf("vulkan backend unavailable -- the window will stay blank");
 			return;
 		}
 		g_backendIsVulkan = true;
 	}
 	else if (!D3DOwnWindowInitialize(g_renderDevice))
 	{
-		Console::Warn("could not find the game's ID3D11Device -- the window will stay blank");
+		Console::Warnf("could not find the game's ID3D11Device -- the window will stay blank");
 		return;
 	}
 	if (!g_platWindowToOsHandle || !g_ownPlatWindow)
@@ -453,7 +447,7 @@ void EnsureD3DPath()
 														   g_ownWindowHeight);
 	if (!created)
 	{
-		Console::Warn("swapchain creation failed -- the window will stay blank");
+		Console::Warnf("swapchain creation failed -- the window will stay blank");
 		return;
 	}
 
@@ -512,7 +506,7 @@ bool CreateWindowAndDebugger(void* engine)
 {
 	if (!g_platCreateWindow)
 	{
-		Console::Warn("Plat_CreateWindow unavailable");
+		Console::Warnf("Plat_CreateWindow unavailable");
 		return false;
 	}
 
@@ -521,7 +515,7 @@ bool CreateWindowAndDebugger(void* engine)
 										 kDebuggerWindowFlags, nullptr);
 	if (!g_ownPlatWindow)
 	{
-		Console::Warn("Plat_CreateWindow failed");
+		Console::Warnf("Plat_CreateWindow failed");
 		return false;
 	}
 
@@ -538,7 +532,7 @@ bool CreateWindowAndDebugger(void* engine)
 									kDebuggerViewName, nullptr, /*bDrawToBackBuffer*/ 0);
 	if (!g_ownUiWindow || !safemem::HasPlausibleVTable(g_ownUiWindow))
 	{
-		Console::Warn("CreateNewOffscreenUIWindow failed");
+		Console::Warnf("CreateNewOffscreenUIWindow failed");
 		if (g_platDestroyWindow)
 			g_platDestroyWindow(g_ownPlatWindow);
 		g_ownPlatWindow = nullptr;
@@ -563,7 +557,7 @@ bool CreateWindowAndDebugger(void* engine)
 
 	g_debugger = g_createDebugger(nullptr, g_ownUiWindow, kDebuggerPanelId);
 	if (!g_debugger)
-		Console::Warn("CreateDebugger returned null");
+		Console::Warnf("CreateDebugger returned null");
 
 	using ActivateFn = void(__fastcall*)(void* self, char sendInput);
 	reinterpret_cast<ActivateFn>(windowVTable[kWindowActivate])(g_ownUiWindow, 0);
@@ -576,7 +570,7 @@ void RegisterAsViewAndShow()
 {
 	if (!g_gameUIService || !g_ownUiWindow || !safemem::HasPlausibleVTable(g_gameUIService))
 	{
-		Console::Warn("no GameUIService to register the view with");
+		Console::Warnf("no GameUIService to register the view with");
 		return;
 	}
 
@@ -634,7 +628,7 @@ void CloseDebuggerWindow()
 	}
 
 	g_debuggerVisible = false;
-	Console::Print("closed");
+	Console::Printf("closed");
 }
 
 // Slot 18 does the panorama-side work but runs with sendInput=0 while the game
@@ -805,7 +799,7 @@ bool Initialize()
 		}
 		else
 		{
-			Console::Warn("CUIEngine singleton pattern not found (game update?)");
+			Console::Warnf("CUIEngine singleton pattern not found (game update?)");
 		}
 	}
 
@@ -814,7 +808,7 @@ bool Initialize()
 		g_createDebugger = reinterpret_cast<CreateDebuggerFn>(
 			client.FindPattern(kCreateDebuggerPattern, kCreateDebuggerMask));
 		if (!g_createDebugger)
-			Console::Warn("CreateDebugger pattern not found (game update?)");
+			Console::Warnf("CreateDebugger pattern not found (game update?)");
 	}
 
 	ResolveRenderDevice();
@@ -838,7 +832,7 @@ bool Initialize()
 				}
 				else
 				{
-					Console::Warn("CPanoramaEngineHandler pattern not found (game update?)");
+					Console::Warnf("CPanoramaEngineHandler pattern not found (game update?)");
 				}
 			}
 		}
@@ -869,7 +863,7 @@ bool Initialize()
 			}
 			else
 			{
-				Console::Warn("AddGameInputHandler pattern not found (game update?)");
+				Console::Warnf("AddGameInputHandler pattern not found (game update?)");
 			}
 
 			g_releaseGameInputHandler = reinterpret_cast<ReleaseGameInputHandlerFn>(
@@ -913,7 +907,7 @@ bool Initialize()
 				if (VkOwnWindowIsActive() && VkOwnWindowInitialize(g_renderDevice))
 					g_backendIsVulkan = true;
 
-				Console::Print("ready -- press F6 to toggle the debugger");
+				Console::Printf("ready -- press F6 to toggle the debugger");
 			}
 		}
 	}

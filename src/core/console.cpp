@@ -4,6 +4,7 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <string>
 
 #include "tier0/dbg.h"
 
@@ -17,52 +18,36 @@ constexpr const char* kPrefix = "[panorama-debugger] ";
 
 // Also to the debugger output, because the console is not up yet while the
 // plugin resolves its patterns during load.
-void Emit(const char* text, bool warning)
+void Emit(const char* format, va_list args, bool warning)
 {
-	OutputDebugStringA(text);
+	char buffer[1024];
+	_vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
+
+	const std::string text = kPrefix + std::string(buffer) + "\n";
+	OutputDebugStringA(text.c_str());
 
 	if (warning)
-		Warning("%s", text);
+		Warning("%s", text.c_str());
 	else
-		Msg("%s", text);
+		Msg("%s", text.c_str());
 }
 
 } // namespace
 
-void Console::Print(const std::string& line)
-{
-	const std::string text = kPrefix + line + "\n";
-	Emit(text.c_str(), false);
-}
-
-void Console::Warn(const std::string& line)
-{
-	const std::string text = kPrefix + line + "\n";
-	Emit(text.c_str(), true);
-}
-
 void Console::Printf(const char* format, ...)
 {
-	char buffer[1024];
-
 	va_list args;
 	va_start(args, format);
-	_vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
+	Emit(format, args, false);
 	va_end(args);
-
-	Print(buffer);
 }
 
 void Console::Warnf(const char* format, ...)
 {
-	char buffer[1024];
-
 	va_list args;
 	va_start(args, format);
-	_vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, format, args);
+	Emit(format, args, true);
 	va_end(args);
-
-	Warn(buffer);
 }
 
 } // namespace panodbg

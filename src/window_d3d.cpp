@@ -26,11 +26,6 @@ ID3D11DeviceContext* g_context = nullptr;
 IDXGISwapChain* g_swapChain = nullptr;
 ID3D11RenderTargetView* g_renderTarget = nullptr;
 
-std::string g_deviceNote = "not searched";
-std::string g_swapChainNote = "not created";
-std::string g_presentNote = "not presented";
-uint64_t g_presentCount = 0;
-
 // Magenta: nothing in CS2's UI is this colour, so if the window shows it the
 // pixels came from here and nowhere else.
 constexpr float kProbeColour[4] = {1.0f, 0.0f, 1.0f, 1.0f};
@@ -76,7 +71,6 @@ uint32_t g_lockedHeight = 0;
 std::atomic<ID3D11Texture2D*> g_capturedTexture{nullptr};
 uint32_t g_wantWidth = 0;
 uint32_t g_wantHeight = 0;
-std::atomic<uint64_t> g_redirectedBinds{0};
 
 using OMSetRenderTargetsFn = void(__stdcall*)(ID3D11DeviceContext* self, UINT numViews,
 											  ID3D11RenderTargetView* const* views,
@@ -176,7 +170,6 @@ void NoteRenderTarget(ID3D11RenderTargetView* view)
 				g_seen[slot].binds = 1;
 				if (slot == count)
 					g_seenCount.store(count + 1, std::memory_order_release);
-				g_redirectedBinds.fetch_add(1, std::memory_order_relaxed);
 			}
 		}
 		texture->Release();
@@ -197,7 +190,6 @@ void __stdcall OMSetRenderTargetsDetour(ID3D11DeviceContext* self, UINT numViews
 // Whether the device Present hook should do our copy. Set once the swapchain and
 // the hook are both up, cleared on shutdown.
 std::atomic<bool> g_presentOurs{false};
-std::string g_presentHookNote = "not installed";
 
 void PresentOwnWindow()
 {
@@ -296,13 +288,7 @@ void PresentOwnWindow()
 	}
 
 	const HRESULT hr = g_swapChain->Present(0, 0);
-	++g_presentCount;
 
-	char text[192];
-	_snprintf_s(text, sizeof(text), _TRUNCATE, "hr=0x%08lX count=%llu captured=%s targetsSeen=%u",
-				static_cast<unsigned long>(hr), static_cast<unsigned long long>(g_presentCount),
-				source ? "yes" : "no", g_seenCount.load(std::memory_order_relaxed));
-	g_presentNote = text;
 }
 
 // How far into an engine object to look for a COM pointer. Bounded so a layout
@@ -338,14 +324,12 @@ bool D3DOwnWindowInitialize(void* source2RenderDevice)
 
 	if (!source2RenderDevice)
 	{
-		g_deviceNote = "no Source2 render device";
 		return false;
 	}
 
 	const platform::Module d3d11 = platform::Module::FromName("d3d11.dll");
 	if (!d3d11.IsValid())
 	{
-		g_deviceNote = "d3d11.dll not loaded";
 		return false;
 	}
 
@@ -372,8 +356,7 @@ bool D3DOwnWindowInitialize(void* source2RenderDevice)
 				char text[128];
 				_snprintf_s(text, sizeof(text), _TRUNCATE, "at device+%zu -> %p",
 							kDeviceD3DDeviceOffset, static_cast<void*>(g_device));
-				g_deviceNote = text;
-				Console::Print(std::string("ID3D11Device ") + g_deviceNote);
+				Console::Printf("ID3D11Device %s", text);
 				return true;
 			}
 		}
@@ -404,8 +387,7 @@ bool D3DOwnWindowInitialize(void* source2RenderDevice)
 		char text[128];
 		_snprintf_s(text, sizeof(text), _TRUNCATE, "found at device+%zu -> %p", offset,
 					static_cast<void*>(g_device));
-		g_deviceNote = text;
-		Console::Print(std::string("panorama d3d: ID3D11Device ") + g_deviceNote);
+		Console::Printf("panorama d3d: ID3D11Device %s", text);
 		return true;
 	}
 
@@ -463,7 +445,6 @@ bool D3DOwnWindowInitialize(void* source2RenderDevice)
 		++reported;
 	}
 
-	g_deviceNote = "no ID3D11Device inside the Source2 device object";
 	return false;
 }
 
@@ -471,7 +452,6 @@ bool D3DOwnWindowCreateSwapChain(void* hwnd, int width, int height)
 {
 	if (!g_device || !hwnd)
 	{
-		g_swapChainNote = "no device / hwnd";
 		return false;
 	}
 
@@ -549,8 +529,7 @@ bool D3DOwnWindowCreateSwapChain(void* hwnd, int width, int height)
 	_snprintf_s(text, sizeof(text), _TRUNCATE, "%s swapchain=%p rtv=%p %dx%d",
 				ok ? "created" : "FAILED", static_cast<void*>(g_swapChain),
 				static_cast<void*>(g_renderTarget), width, height);
-	g_swapChainNote = text;
-	Console::Print(std::string("panorama d3d: ") + g_swapChainNote);
+	Console::Printf("panorama d3d: %s", text);
 	return ok;
 }
 
@@ -598,7 +577,6 @@ bool D3DOwnWindowInstallDevicePresentHook(void* source2RenderDevice)
 	}
 	if (!source2RenderDevice || !safemem::HasPlausibleVTable(source2RenderDevice))
 	{
-		g_presentHookNote = "no Source2 render device";
 		return false;
 	}
 
@@ -606,12 +584,10 @@ bool D3DOwnWindowInstallDevicePresentHook(void* source2RenderDevice)
 	if (!g_devicePresentHook.Install(vtable, kDevicePresentSlot,
 									 reinterpret_cast<void*>(&DevicePresentDetour)))
 	{
-		g_presentHookNote = "device Present hook failed";
 		return false;
 	}
 
 	g_presentOurs.store(true, std::memory_order_relaxed);
-	g_presentHookNote = "hooked CRenderDeviceBase::Present";
 	return true;
 }
 
@@ -664,8 +640,6 @@ void D3DOwnWindowShutdown()
 		g_device->Release();
 		g_device = nullptr;
 	}
-	g_swapChainNote = "not created";
-	g_presentNote = "not presented";
 }
 
 } // namespace panodbg

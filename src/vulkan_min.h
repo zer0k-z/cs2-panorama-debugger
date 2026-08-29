@@ -48,7 +48,6 @@ constexpr uint32_t VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL = 6;
 constexpr uint32_t VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL = 7;
 constexpr uint32_t VK_IMAGE_LAYOUT_PRESENT_SRC_KHR = 1000001002;
 constexpr uint32_t VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL = 5;
-constexpr uint32_t VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL = 2;
 
 constexpr uint32_t VK_IMAGE_ASPECT_COLOR_BIT = 0x1;
 constexpr uint32_t VK_IMAGE_USAGE_TRANSFER_DST_BIT = 0x2;
@@ -235,7 +234,6 @@ struct VkSemaphoreCreateInfo
 };
 
 using PFN_vkVoidFunction = void(__stdcall*)();
-using PFN_vkGetInstanceProcAddr = PFN_vkVoidFunction(__stdcall*)(VkInstance, const char*);
 using PFN_vkGetDeviceProcAddr = PFN_vkVoidFunction(__stdcall*)(VkDevice, const char*);
 using PFN_vkCreateWin32SurfaceKHR = VkResult(__stdcall*)(VkInstance,
 														 const VkWin32SurfaceCreateInfoKHR*,
@@ -271,7 +269,6 @@ using PFN_vkCmdBlitImage = void(__stdcall*)(VkCommandBuffer, VkImage, uint32_t, 
 using PFN_vkQueueSubmit = VkResult(__stdcall*)(VkQueue, uint32_t, const VkSubmitInfo*, VkFence);
 using PFN_vkQueueWaitIdle = VkResult(__stdcall*)(VkQueue);
 using PFN_vkDeviceWaitIdle = VkResult(__stdcall*)(VkDevice);
-using PFN_vkGetDeviceQueue = void(__stdcall*)(VkDevice, uint32_t, uint32_t, VkQueue*);
 using PFN_vkCreateSemaphore = VkResult(__stdcall*)(VkDevice, const VkSemaphoreCreateInfo*,
 												   const void*, VkSemaphore*);
 using PFN_vkDestroySemaphore = void(__stdcall*)(VkDevice, VkSemaphore, const void*);
@@ -295,7 +292,6 @@ using PFN_vkGetPhysicalDeviceSurfacePresentModesKHR =
 constexpr uint32_t VK_PRESENT_MODE_IMMEDIATE_KHR = 0;
 
 constexpr uint32_t VK_IMAGE_TYPE_2D = 1;
-constexpr uint32_t VK_IMAGE_USAGE_TRANSFER_SRC_BIT = 0x1;
 constexpr uint32_t VK_IMAGE_USAGE_SAMPLED_BIT = 0x4;
 constexpr uint32_t VK_ACCESS_SHADER_READ_BIT = 0x20;
 constexpr uint32_t VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT = 0x80;
