@@ -1,0 +1,96 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Plugin
+    # Windows only: the plugin is a client-side tool and the render backends are
+    # D3D11 and Vulkan-on-Win32.
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout hl2sdk-cs2
+        uses: actions/checkout@v4
+        with:
+          repository: alliedmodders/hl2sdk
+          ref: cs2
+          path: hl2sdk-cs2
+          fetch-depth: 1
+
+      - name: Checkout Metamod:Source
+        uses: actions/checkout@v4
+        with:
+          repository: alliedmodders/metamod-source
+          submodules: recursive
+          path: metamod-source
+          fetch-depth: 1
+
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+
+      - name: Build
+        shell: bash
+        env:
+          HL2SDKCS2: ${{ github.workspace }}/hl2sdk-cs2
+          MMSOURCE: ${{ github.workspace }}/metamod-source
+        run: |
+          xmake f -p windows -a x64 -m release -y
+          xmake
+
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p package/addons/cs2-panorama-debugger/bin/win64
+          mkdir -p package/addons/metamod
+          cp build/windows/x64/release/cs2-panorama-debugger.dll \
+             package/addons/cs2-panorama-debugger/bin/win64/
+          cp cs2-panorama-debugger.vdf package/addons/metamod/
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs2-panorama-debugger-windows
+          path: ./package
+
+  release:
+    name: Release
+    # Rolling release from the default branch only, never from a fork's PR.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cs2-panorama-debugger-windows
+          path: package
+
+      - name: Package
+        run: |
+          mkdir -p releases
+          (cd package && zip -r ../releases/cs2-panorama-debugger-windows.zip .)
+
+      - name: Move the rolling tag
+        run: |
+          git tag -f latest
+          git push -f origin latest
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          files: releases/*
+          generate_release_notes: false
+          prerelease: false

@@ -1,0 +1,5 @@
+"Metamod Plugin"
+{
+	"alias"		"panodbg"
+	"file"		"addons/cs2-panorama-debugger/bin/win64/cs2-panorama-debugger"
+}
