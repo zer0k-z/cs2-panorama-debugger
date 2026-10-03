@@ -21,17 +21,17 @@ namespace
 
 // rendersystemvulkan.dll. Read off the calls that produce each handle:
 //
-//   CRenderDeviceVulkan::CreateDevice (primary vtable slot 250)
-//     vkCreateDevice(physicalDevice = [this+0x3960], ..., pDevice = this+0x3950)
-//     vkGetDeviceQueue([this+0x3950], [this+0x3978], 0, this+0x3968)
+//   CRenderDeviceVulkan::CreateDevice (primary vtable slot 251)
+//     vkCreateDevice(physicalDevice = [this+0x2900], ..., pDevice = this+0x28F0)
+//     vkGetDeviceQueue([this+0x28F0], [this+0x2918], 0, this+0x2908)
 //   CRenderDeviceMgrVulkan (vtable slot 0)
 //     vkEnumeratePhysicalDevices([this+0xA0], ...)
 //
 // Both classes have their primary vtable at sub-object offset 0.
-constexpr size_t kDeviceVkDevice = 0x3950;
-constexpr size_t kDeviceVkPhysicalDevice = 0x3960;
-constexpr size_t kDeviceVkQueue = 0x3968;
-constexpr size_t kDeviceQueueFamily = 0x3978;
+constexpr size_t kDeviceVkDevice = 0x28F0;
+constexpr size_t kDeviceVkPhysicalDevice = 0x2900;
+constexpr size_t kDeviceVkQueue = 0x2908;
+constexpr size_t kDeviceQueueFamily = 0x2918;
 constexpr size_t kMgrVkInstance = 0xA0;
 
 constexpr size_t kDevicePresentSlot = 16;
@@ -59,11 +59,11 @@ std::atomic<bool> g_presentOurs{false};
 
 // rendersystemvulkan calls every Vulkan entry point through a writable global,
 // so one pointer swap is the whole hook. These are filled by its two loader
-// functions (sub_180009070 instance level, sub_1800096E0 device level), where
+// functions (sub_1800091E0 instance level, sub_1800098E0 device level), where
 // the store follows the *next* `lea rdx, "vkNextName"` -- which is how to
 // rebuild the global-to-name mapping after an update.
-constexpr size_t kGlobalCreateImage = 0x6133D0;
-constexpr size_t kGlobalDestroyImage = 0x6133D8;
+constexpr size_t kGlobalCreateImage = 0x62B3F0;
+constexpr size_t kGlobalDestroyImage = 0x62B3F8;
 
 void** g_createImageGlobal = nullptr;
 void** g_destroyImageGlobal = nullptr;
@@ -191,7 +191,7 @@ void DumpHandleFields(void* object)
 		Console::Warnf("vulkan: object %p is %s+0x%zX", object, module.GetName().c_str(),
 					   static_cast<size_t>(static_cast<uint8_t*>(object) - module.GetBase()));
 
-	for (size_t offset = 0x3940; offset <= 0x3980; offset += 8)
+	for (size_t offset = kDeviceVkDevice - 0x10; offset <= kDeviceQueueFamily + 0x8; offset += 8)
 	{
 		uint64_t value = 0;
 		if (!safemem::Read(static_cast<uint8_t*>(object) + offset, &value, sizeof(value)))
@@ -203,7 +203,7 @@ void DumpHandleFields(void* object)
 }
 
 // An interface pointer is not the start of the object -- CRenderDeviceVulkan
-// has base sub-objects at +3344 and +3352 as well as the primary one at 0. MSVC
+// has a base sub-object at +3408 as well as the primary one at 0. MSVC
 // records the distance in the complete object locator at vtable[-1].
 void* CompleteObjectFrom(void* object)
 {

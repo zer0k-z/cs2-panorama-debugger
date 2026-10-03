@@ -9,7 +9,8 @@
 #include "core/console.h"
 #include "debugger.h"
 
-// Declares g_SMAPI / g_PLAPI / g_PLID / g_SHPtr, which PLUGIN_SAVEVARS fills in.
+// Declares g_SMAPI / g_PLAPI / g_PLID and the KHook interface pointer, which
+// PLUGIN_SAVEVARS fills in.
 PLUGIN_GLOBALVARS();
 
 namespace

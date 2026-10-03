@@ -27,7 +27,7 @@ target("cs2-panorama-debugger")
     -- entity2 or tier1 translation units: the whole plugin is one library.
     add_includedirs(
         MMSOURCE .. "/core",
-        MMSOURCE .. "/core/sourcehook",
+        MMSOURCE .. "/third_party/khook/include",
         PROTOBUF_HEADERS,
         SDK .. "/thirdparty/protobuf-3.21.8/src",
         SDK,

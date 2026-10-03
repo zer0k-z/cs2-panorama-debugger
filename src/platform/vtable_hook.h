@@ -6,7 +6,7 @@ namespace panodbg::platform
 {
 
 // Replaces one entry of an existing vtable. Every hook here is a virtual call,
-// so patching the slot is enough -- no SourceHook, no inline-hook library.
+// so patching the slot is enough -- no KHook, no inline-hook library.
 class VTableHook
 {
 public:
