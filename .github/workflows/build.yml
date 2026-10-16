@@ -16,12 +16,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout hl2sdk-cs2
+      - name: Checkout s2sdk
         uses: actions/checkout@v4
         with:
-          repository: alliedmodders/hl2sdk
+          repository: alliedmodders/s2sdk
           ref: cs2
-          path: hl2sdk-cs2
+          path: s2sdk-cs2
           fetch-depth: 1
 
       - name: Checkout Metamod:Source
@@ -38,7 +38,7 @@ jobs:
       - name: Build
         shell: bash
         env:
-          HL2SDKCS2: ${{ github.workspace }}/hl2sdk-cs2
+          S2SDKCS2: ${{ github.workspace }}/s2sdk-cs2
           MMSOURCE: ${{ github.workspace }}/metamod-source
         run: |
           xmake f -p windows -a x64 -m release -y

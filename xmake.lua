@@ -2,13 +2,15 @@ set_runtimes("MT")
 add_rules("mode.debug", "mode.release")
 set_languages("cxx20")
 
--- Both point at the checkouts under cs2kz-metamod by default; override either
--- with an environment variable to build against a different tree.
-local SDK = os.getenv("HL2SDKCS2") or "C:/coding/cs2kz-metamod/hl2sdk-cs2"
-local MMSOURCE = os.getenv("MMSOURCE") or "C:/coding/cs2kz-metamod/metamod-source"
+-- The SDK is alliedmodders/s2sdk (branch cs2), which continues hl2sdk's cs2
+-- branch, and Metamod needs a checkout with s2sdk support (2026-10-13 or later).
+-- Override either with an environment variable to build against a different tree.
+-- Not HL2SDKCS2: other projects still set that to an hl2sdk checkout.
+local SDK = os.getenv("S2SDKCS2") or "C:/coding/s2sdk-cs2"
+local MMSOURCE = os.getenv("MMSOURCE") or "C:/coding/metamod-source"
 
--- plugin.cpp includes eiface.h for IVEngineServer2::ServerCommand, and eiface.h
--- includes network_connection.pb.h. That one generated header is the only
+-- plugin.cpp includes engine2/ivengineserver2.h for IVEngineServer2::ServerCommand,
+-- and that header includes network_connection.pb.h. That one generated header is the only
 -- protobuf involved -- no type from it is ever used, so nothing has to be
 -- compiled or linked -- and it is vendored in protobuf/ rather than generated,
 -- which is what CS2ServerGUI does and what keeps the build self-contained.
@@ -23,23 +25,21 @@ target("cs2-panorama-debugger")
     add_headerfiles("src/**.h")
     add_includedirs("src")
 
-    -- Only what ISmmPlugin.h, eiface.h and tier0's Msg() need. No mathlib,
-    -- entity2 or tier1 translation units: the whole plugin is one library.
+    -- Only what ISmmPlugin.h, ivengineserver2.h and tier0's Msg() need. No
+    -- mathlib, entity2 or tier0_perproject translation units: the whole plugin
+    -- is one library. The SDK paths are hl2sdk-manifests' cs2 include_paths.
     add_includedirs(
         MMSOURCE .. "/core",
         MMSOURCE .. "/third_party/khook/include",
         PROTOBUF_HEADERS,
         SDK .. "/thirdparty/protobuf-3.21.8/src",
-        SDK,
-        SDK .. "/common",
-        SDK .. "/game/shared",
-        SDK .. "/game/server",
         SDK .. "/public",
-        SDK .. "/public/engine",
+        SDK .. "/public/engine2",
         SDK .. "/public/mathlib",
         SDK .. "/public/tier0",
-        SDK .. "/public/tier1",
-        SDK .. "/public/entity2")
+        SDK .. "/public/entity2",
+        SDK .. "/game/shared",
+        SDK .. "/common")
 
     add_defines(
         "COMPILER_MSVC",

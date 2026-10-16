@@ -22,16 +22,16 @@ namespace
 // rendersystemvulkan.dll. Read off the calls that produce each handle:
 //
 //   CRenderDeviceVulkan::CreateDevice (primary vtable slot 251)
-//     vkCreateDevice(physicalDevice = [this+0x2900], ..., pDevice = this+0x28F0)
-//     vkGetDeviceQueue([this+0x28F0], [this+0x2918], 0, this+0x2908)
+//     vkCreateDevice(physicalDevice = [this+0x28F0], ..., pDevice = this+0x28E0)
+//     vkGetDeviceQueue([this+0x28E0], [this+0x2908], 0, this+0x28F8)
 //   CRenderDeviceMgrVulkan (vtable slot 0)
 //     vkEnumeratePhysicalDevices([this+0xA0], ...)
 //
 // Both classes have their primary vtable at sub-object offset 0.
-constexpr size_t kDeviceVkDevice = 0x28F0;
-constexpr size_t kDeviceVkPhysicalDevice = 0x2900;
-constexpr size_t kDeviceVkQueue = 0x2908;
-constexpr size_t kDeviceQueueFamily = 0x2918;
+constexpr size_t kDeviceVkDevice = 0x28E0;
+constexpr size_t kDeviceVkPhysicalDevice = 0x28F0;
+constexpr size_t kDeviceVkQueue = 0x28F8;
+constexpr size_t kDeviceQueueFamily = 0x2908;
 constexpr size_t kMgrVkInstance = 0xA0;
 
 constexpr size_t kDevicePresentSlot = 16;

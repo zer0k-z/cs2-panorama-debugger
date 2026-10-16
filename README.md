@@ -42,11 +42,13 @@ xmake f -p windows -a x64 -m release
 xmake
 ```
 
-Needs `hl2sdk-cs2` and `metamod-source`. Both default to the checkouts under
-`C:/coding/cs2kz-metamod`; override with `HL2SDKCS2` and `MMSOURCE`.
+Needs [s2sdk](https://github.com/alliedmodders/s2sdk) (branch `cs2`) and a `metamod-source` with
+s2sdk support (master from 2026-10-13 on). They default to `C:/coding/s2sdk-cs2` and
+`C:/coding/metamod-source`; override with `S2SDKCS2` and `MMSOURCE`. The SDK variable is not
+`HL2SDKCS2` on purpose, since other projects still point that at an hl2sdk checkout.
 
 The plugin uses no SDK type beyond `Msg()`, `ISmmPlugin` and `IVEngineServer2::ServerCommand`. That
-last one drags in `eiface.h`, which includes `network_connection.pb.h` — the only protobuf involved.
+last one drags in `engine2/ivengineserver2.h`, which includes `network_connection.pb.h` — the only protobuf involved.
 No type from it is ever used, so nothing is compiled or linked; the header is vendored in
 `protobuf/` so the build needs neither protoc nor a protobuf library.
 

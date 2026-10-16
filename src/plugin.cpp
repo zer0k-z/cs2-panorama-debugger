@@ -4,7 +4,7 @@
 #include <thread>
 
 #include "ISmmPlugin.h"
-#include "eiface.h"
+#include "engine2/ivengineserver2.h"
 
 #include "core/console.h"
 #include "debugger.h"
